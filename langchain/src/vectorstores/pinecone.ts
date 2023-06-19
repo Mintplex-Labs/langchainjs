@@ -12,6 +12,13 @@ type VectorOperationsApi = ReturnType<
   import("@pinecone-database/pinecone").PineconeClient["Index"]
 >;
 
+type IEmbedResponse = {
+  ids: any;
+  embeddings: any,
+  metadatas: any,
+  documents: any
+};
+
 export interface PineconeLibArgs {
   pineconeIndex: VectorOperationsApi;
   textKey?: string;
@@ -40,7 +47,7 @@ export class PineconeStore extends VectorStore {
     this.filter = args.filter;
   }
 
-  async addDocuments(documents: Document[], ids?: string[]): Promise<void> {
+  async addDocuments(documents: Document[], ids?: string[]): Promise<any | IEmbedResponse> {
     const texts = documents.map(({ pageContent }) => pageContent);
     return this.addVectors(
       await this.embeddings.embedDocuments(texts),
@@ -53,7 +60,7 @@ export class PineconeStore extends VectorStore {
     vectors: number[][],
     documents: Document[],
     ids?: string[]
-  ): Promise<void> {
+  ): Promise<any | IEmbedResponse> {
     const documentIds = ids == null ? documents.map(() => uuid.v4()) : ids;
     const pineconeVectors = vectors.map((values, idx) => {
       // Pinecone doesn't support nested objects, so we flatten them
@@ -107,6 +114,13 @@ export class PineconeStore extends VectorStore {
         },
       });
     }
+
+    return {
+      ids: pineconeVectors.map((vector) => vector.id),
+      metadatas: pineconeVectors.map((vector) => vector.metadata),
+      embeddings: pineconeVectors.map((vector) => vector.values),
+      documents: pineconeVectors.map((vector) => vector.metadata[this.textKey]),
+    }
   }
 
   async similaritySearchVectorWithScore(
@@ -149,13 +163,13 @@ export class PineconeStore extends VectorStore {
     embeddings: Embeddings,
     dbConfig:
       | {
-          /**
-           * @deprecated Use pineconeIndex instead
-           */
-          pineconeClient: VectorOperationsApi;
-          textKey?: string;
-          namespace?: string | undefined;
-        }
+        /**
+         * @deprecated Use pineconeIndex instead
+         */
+        pineconeClient: VectorOperationsApi;
+        textKey?: string;
+        namespace?: string | undefined;
+      }
       | PineconeLibArgs
   ): Promise<PineconeStore> {
     const docs: Document[] = [];
@@ -190,6 +204,19 @@ export class PineconeStore extends VectorStore {
     const instance = new this(embeddings, args);
     await instance.addDocuments(docs);
     return instance;
+  }
+
+  static async fromDocumentsVerbose(
+    docs: Document[],
+    embeddings: Embeddings,
+    dbConfig: PineconeLibArgs
+  ): Promise<{ instance: PineconeStore, embedResults: IEmbedResponse }> {
+    const args = dbConfig;
+    args.textKey = dbConfig.textKey ?? "text";
+
+    const instance = new this(embeddings, args);
+    const embedResults = await instance.addDocuments(docs);
+    return { instance, embedResults };
   }
 
   static async fromExistingIndex(

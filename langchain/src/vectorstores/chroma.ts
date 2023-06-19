@@ -7,17 +7,24 @@ import { Document } from "../document.js";
 
 export type ChromaLibArgs =
   | {
-      url?: string;
-      numDimensions?: number;
-      collectionName?: string;
-      filter?: object;
-    }
+    url?: string;
+    numDimensions?: number;
+    collectionName?: string;
+    filter?: object;
+  }
   | {
-      index?: ChromaClientT;
-      numDimensions?: number;
-      collectionName?: string;
-      filter?: object;
-    };
+    index?: ChromaClientT;
+    numDimensions?: number;
+    collectionName?: string;
+    filter?: object;
+  };
+
+type IEmbedResponse = {
+  ids: string[];
+  embeddings: number[][],
+  metadatas: object[],
+  documents: Document<any>[]
+} | void | undefined;
 
 export class Chroma extends VectorStore {
   declare FilterType: object;
@@ -50,7 +57,7 @@ export class Chroma extends VectorStore {
 
   async addDocuments(documents: Document[]): Promise<void> {
     const texts = documents.map(({ pageContent }) => pageContent);
-    await this.addVectors(
+    return await this.addVectors(
       await this.embeddings.embedDocuments(texts),
       documents
     );
@@ -74,7 +81,7 @@ export class Chroma extends VectorStore {
     return this.collection;
   }
 
-  async addVectors(vectors: number[][], documents: Document[]) {
+  async addVectors(vectors: number[][], documents: Document[]): Promise<any | IEmbedResponse> {
     if (vectors.length === 0) {
       return;
     }
@@ -91,15 +98,22 @@ export class Chroma extends VectorStore {
     }
 
     const collection = await this.ensureCollection();
-    const docstoreSize = await collection.count();
+    const ids = Array.from({ length: vectors.length }, (_) =>
+      uuid.v4()
+    )
     await collection.add({
-      ids: Array.from({ length: vectors.length }, (_, i) =>
-        (docstoreSize + i).toString()
-      ),
+      ids,
       embeddings: vectors,
       metadatas: documents.map(({ metadata }) => metadata),
       documents: documents.map(({ pageContent }) => pageContent),
     });
+
+    return {
+      ids,
+      embeddings: vectors,
+      metadatas: documents.map(({ metadata }) => metadata),
+      documents: documents.map(({ pageContent }) => pageContent),
+    }
   }
 
   async similaritySearchVectorWithScore(
@@ -177,6 +191,19 @@ export class Chroma extends VectorStore {
     const instance = new this(embeddings, dbConfig);
     await instance.addDocuments(docs);
     return instance;
+  }
+
+  static async fromDocumentsVerbose(
+    docs: Document[],
+    embeddings: Embeddings,
+    dbConfig: {
+      collectionName?: string;
+      url?: string;
+    }
+  ): Promise<{ instance: Chroma, embedResults: IEmbedResponse }> {
+    const instance = new this(embeddings, dbConfig);
+    const embedResults = await instance.addDocuments(docs);
+    return { instance, embedResults };
   }
 
   static async fromExistingCollection(

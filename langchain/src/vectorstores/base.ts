@@ -110,6 +110,17 @@ export abstract class VectorStore {
     );
   }
 
+  static fromDocumentsVerbose(
+    _docs: Document[],
+    _embeddings: Embeddings,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    _dbConfig: Record<string, any>
+  ): Promise<any> {
+    throw new Error(
+      "the Langchain vectorstore implementation you are using forgot to override this, please report a bug"
+    );
+  }
+
   asRetriever(
     k?: number,
     filter?: this["FilterType"]
