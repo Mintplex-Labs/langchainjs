@@ -1,6 +1,8 @@
 import { VectorStore } from "./base.js";
 import { Embeddings } from "../embeddings/base.js";
 import { Document } from "../document.js";
+import { BaseVectorDatabaseManagementSystem } from "../vdbms/base.js";
+import { ConiferVDBMS } from "../vdbms/conifer.js";
 type PineconeMetadata = Record<string, any>;
 type VectorOperationsApi = ReturnType<import("@pinecone-database/pinecone").PineconeClient["Index"]>;
 type IEmbedResponse = {
@@ -14,6 +16,7 @@ export interface PineconeLibArgs {
     textKey?: string;
     namespace?: string;
     filter?: PineconeMetadata;
+    vdbms?: BaseVectorDatabaseManagementSystem;
 }
 export declare class PineconeStore extends VectorStore {
     FilterType: PineconeMetadata;
@@ -33,8 +36,8 @@ export declare class PineconeStore extends VectorStore {
         textKey?: string;
         namespace?: string | undefined;
     } | PineconeLibArgs): Promise<PineconeStore>;
-    static fromDocuments(docs: Document[], embeddings: Embeddings, dbConfig: PineconeLibArgs): Promise<PineconeStore>;
-    static fromDocumentsVerbose(docs: Document[], embeddings: Embeddings, dbConfig: PineconeLibArgs): Promise<{
+    static fromDocuments(docs: Document[], embeddings: Embeddings, dbConfig: PineconeLibArgs, vdbms?: ConiferVDBMS): Promise<PineconeStore>;
+    static fromDocumentsVerbose(docs: Document[], embeddings: Embeddings, dbConfig: PineconeLibArgs, vdbms?: ConiferVDBMS): Promise<{
         instance: PineconeStore;
         embedResults: IEmbedResponse;
     }>;

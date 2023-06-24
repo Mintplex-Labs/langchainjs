@@ -4,6 +4,8 @@ import flatten from "flat";
 import { VectorStore } from "./base.js";
 import { Embeddings } from "../embeddings/base.js";
 import { Document } from "../document.js";
+import { BaseVectorDatabaseManagementSystem } from "../vdbms/base.js";
+import { ConiferVDBMS } from "../vdbms/conifer.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
 type PineconeMetadata = Record<string, any>;
@@ -24,6 +26,7 @@ export interface PineconeLibArgs {
   textKey?: string;
   namespace?: string;
   filter?: PineconeMetadata;
+  vdbms?: BaseVectorDatabaseManagementSystem;
 }
 
 export class PineconeStore extends VectorStore {
@@ -196,26 +199,30 @@ export class PineconeStore extends VectorStore {
   static async fromDocuments(
     docs: Document[],
     embeddings: Embeddings,
-    dbConfig: PineconeLibArgs
+    dbConfig: PineconeLibArgs,
+    vdbms?: ConiferVDBMS
   ): Promise<PineconeStore> {
     const args = dbConfig;
     args.textKey = dbConfig.textKey ?? "text";
 
     const instance = new this(embeddings, args);
-    await instance.addDocuments(docs);
+    const embedResults = await instance.addDocuments(docs);
+    await vdbms?.addDocuments(embedResults);
     return instance;
   }
 
   static async fromDocumentsVerbose(
     docs: Document[],
     embeddings: Embeddings,
-    dbConfig: PineconeLibArgs
+    dbConfig: PineconeLibArgs,
+    vdbms?: ConiferVDBMS
   ): Promise<{ instance: PineconeStore, embedResults: IEmbedResponse }> {
     const args = dbConfig;
     args.textKey = dbConfig.textKey ?? "text";
 
     const instance = new this(embeddings, args);
     const embedResults = await instance.addDocuments(docs);
+    await vdbms?.addDocuments(embedResults);
     return { instance, embedResults };
   }
 

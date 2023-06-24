@@ -138,18 +138,20 @@ export class PineconeStore extends VectorStore {
         };
         return PineconeStore.fromDocuments(docs, embeddings, args);
     }
-    static async fromDocuments(docs, embeddings, dbConfig) {
-        const args = dbConfig;
-        args.textKey = dbConfig.textKey ?? "text";
-        const instance = new this(embeddings, args);
-        await instance.addDocuments(docs);
-        return instance;
-    }
-    static async fromDocumentsVerbose(docs, embeddings, dbConfig) {
+    static async fromDocuments(docs, embeddings, dbConfig, vdbms) {
         const args = dbConfig;
         args.textKey = dbConfig.textKey ?? "text";
         const instance = new this(embeddings, args);
         const embedResults = await instance.addDocuments(docs);
+        await vdbms?.addDocuments(embedResults);
+        return instance;
+    }
+    static async fromDocumentsVerbose(docs, embeddings, dbConfig, vdbms) {
+        const args = dbConfig;
+        args.textKey = dbConfig.textKey ?? "text";
+        const instance = new this(embeddings, args);
+        const embedResults = await instance.addDocuments(docs);
+        await vdbms?.addDocuments(embedResults);
         return { instance, embedResults };
     }
     static async fromExistingIndex(embeddings, dbConfig) {
