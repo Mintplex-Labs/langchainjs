@@ -1,0 +1,98 @@
+import { FakeEmbeddings } from "../../embeddings/fake.js";
+import { Typesense } from "../typesense.js";
+test("documentsToTypesenseRecords should return the correct typesense records", async () => {
+    const embeddings = new FakeEmbeddings();
+    const vectorstore = new Typesense(embeddings, {
+        schemaName: "test",
+        typesenseClient: {},
+        columnNames: {
+            vector: "vec",
+            pageContent: "text",
+            metadataColumnNames: ["foo", "bar", "baz"],
+        },
+    });
+    const documents = [
+        {
+            metadata: {
+                id: "1",
+                foo: "fooo",
+                bar: "barr",
+                baz: "bazz",
+            },
+            pageContent: "hello world",
+        },
+        {
+            metadata: {
+                id: "2",
+                foo: "foooo",
+                bar: "barrr",
+                baz: "bazzz",
+            },
+            pageContent: "hello world 2",
+        },
+    ];
+    const expected = [
+        {
+            text: "hello world",
+            foo: "fooo",
+            bar: "barr",
+            baz: "bazz",
+            vec: await embeddings.embedQuery("hello world"),
+        },
+        {
+            text: "hello world 2",
+            foo: "foooo",
+            bar: "barrr",
+            baz: "bazzz",
+            vec: await embeddings.embedQuery("hello world 2"),
+        },
+    ];
+    expect(await vectorstore._documentsToTypesenseRecords(documents, await embeddings.embedDocuments(["hello world", "hello world 2"]))).toEqual(expected);
+});
+test("typesenseRecordsToDocuments should return the correct langchain documents", async () => {
+    const embeddings = new FakeEmbeddings();
+    const vectorstore = new Typesense(embeddings, {
+        schemaName: "test",
+        typesenseClient: {},
+        columnNames: {
+            vector: "vec",
+            pageContent: "text",
+            metadataColumnNames: ["foo", "bar", "baz"],
+        },
+    });
+    const typesenseRecords = [
+        {
+            text: "hello world",
+            foo: "fooo",
+            bar: "barr",
+            baz: "bazz",
+            vec: await embeddings.embedQuery("hello world"),
+        },
+        {
+            text: "hello world 2",
+            foo: "foooo",
+            bar: "barrr",
+            baz: "bazzz",
+            vec: await embeddings.embedQuery("hello world 2"),
+        },
+    ];
+    const expected = [
+        {
+            metadata: {
+                foo: "fooo",
+                bar: "barr",
+                baz: "bazz",
+            },
+            pageContent: "hello world",
+        },
+        {
+            metadata: {
+                foo: "foooo",
+                bar: "barrr",
+                baz: "bazzz",
+            },
+            pageContent: "hello world 2",
+        },
+    ];
+    expect(vectorstore._typesenseRecordsToDocuments(typesenseRecords)).toEqual(expected);
+});

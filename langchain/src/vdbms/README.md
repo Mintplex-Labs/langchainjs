@@ -17,14 +17,16 @@ A VBMS or  _vector database management system_ is a service provider that exists
 ### Why does this exist?
 You already know how to effectively create and chat with your documents using tools like `LangChain`, `OpenAI` and `Pinecone`, but what about when you want to...
 
-- Manage independent document.
-- Manage independent embeddings of a document.
-- See how often a document is referenced in chat*.
-- Permission documents to be used in chat applications*.
+- Manage independent documents.
+- Manage independent embeddings of a single document.
+- Cache duplicated embeddings savings you a ton on embedding costs at scale.
+- Duplicate documents across multiple Pinecone namespaces without paying to re-embed.
 
-_*is a feature under development that was out of scope for the hackathon._
+_future developments_
+- See how often a document is referenced in chat.
+- Permission documents to be used in chat applications.
 
-... and do all of this without rewriting your entire codebase or rolling your own implementation of trying to keep track of embeddings and vector ids?
+... and do all of this without rewriting your entire codebase or rolling your own implementation of trying to keep track of embeddings and vector ids? Now do that again with a simple UI for the non-technical people in your team.
 
 -> Thats [Conifer](https://conifer-tools.web.app/).
 
@@ -96,3 +98,5 @@ await PineconeStore.fromDocumentsVerbose(
 `coniferInstance.deleteAllWorkspaceDocuments(pineconeIndex: PineconeLibArgs['pineconeIndex'], pineconeNamespace: string)`: Delete all documents in Pinecone and Conifer in a single instance.
 
 `coniferInstance.deleteDocument(pineconeIndex:PineconeLibArgs['pineconeIndex'], pineconeNamespace: string, coniferDocumentId: string)`: Delete a specific document from pinecone & Conifer in a single call.
+
+`coniferInstance.copyDocumentToNamespace(pineconeIndex: PineconeLibArgs['pineconeIndex'], targetPineconeNamespace: string, coniferDocumentId: string, targetWorkspaceId: string)`: Copy an entire embedded document to another Pinecone workspace without paying to re-embed.

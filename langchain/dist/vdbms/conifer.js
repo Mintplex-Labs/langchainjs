@@ -134,6 +134,15 @@ export class ConiferVDBMS {
         })
             .then((response) => response?.ids ?? []);
     }
+    documentVectorCache(docId) {
+        return this.fetch({
+            path: `/documents/${docId}/cache`,
+            options: {
+                method: 'GET',
+                headers: this.assembleHeaders()
+            },
+        });
+    }
     // Sync a split document with the Conifer Database org and workspace
     async addDocuments(vectorData, useWorkspaceId) {
         const documentName = vectorData.metadatas[0].documentTitle ?? v4();
@@ -185,5 +194,34 @@ export class ConiferVDBMS {
                 headers: this.assembleHeaders()
             },
         });
+    }
+    async copyDocumentToNamespace(pineconeIndex, targetPineconeNamespace, coniferDocumentId, targetWorkspaceId) {
+        const embeddingInformation = await this.documentVectorCache(coniferDocumentId);
+        const pineconeVectors = embeddingInformation.vectors.map((values, idx) => {
+            const knownId = embeddingInformation.ids[idx];
+            const metadata = embeddingInformation.metadatas[idx];
+            return {
+                id: `${knownId}_cpy_${targetPineconeNamespace}`,
+                metadata,
+                values,
+            };
+        });
+        const chunkSize = 50;
+        for (let i = 0; i < pineconeVectors.length; i += chunkSize) {
+            const chunk = pineconeVectors.slice(i, i + chunkSize);
+            await pineconeIndex.upsert({
+                upsertRequest: {
+                    vectors: chunk,
+                    namespace: targetPineconeNamespace,
+                },
+            });
+        }
+        const vectorData = {
+            ids: pineconeVectors.map((vector) => vector.id),
+            metadatas: pineconeVectors.map((vector) => vector.metadata),
+            embeddings: pineconeVectors.map((vector) => vector.values),
+        };
+        await this.addDocuments(vectorData, targetWorkspaceId);
+        return;
     }
 }

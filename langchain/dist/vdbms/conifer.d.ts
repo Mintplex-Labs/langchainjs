@@ -29,9 +29,11 @@ export declare class ConiferVDBMS {
     private documentsInOrganization;
     private documentsInWorkspace;
     private documentVectorIds;
+    private documentVectorCache;
     addDocuments(vectorData: CreateVectorData, useWorkspaceId?: string): Promise<false | undefined>;
     getDocuments(workspaceId?: string): Promise<any>;
     deleteAllWorkspaceDocuments(pineconeIndex: PineconeLibArgs['pineconeIndex'], pineconeNamespace: string, useWorkspaceId?: string): Promise<void>;
     deleteDocument(pineconeIndex: PineconeLibArgs['pineconeIndex'], pineconeNamespace: string, coniferDocumentId: string): Promise<void>;
+    copyDocumentToNamespace(pineconeIndex: PineconeLibArgs['pineconeIndex'], targetPineconeNamespace: string, coniferDocumentId: string, targetWorkspaceId: string): Promise<void>;
 }
 export {};
