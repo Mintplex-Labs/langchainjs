@@ -1,6 +1,6 @@
 # Conifer VDBMS?
 
-### ⚠️ This project was created during the Pinecone.io Hackathon ⚠️ 
+### ⚠️ This project was created for the Pinecone.io Hackathon ⚠️ 
 It should be used with caution in any production environments. You can use the real application for free at
 [Conifer](https://conifer-tools.web.app/).
 
