@@ -19,11 +19,10 @@ You already know how to effectively create and chat with your documents using to
 
 - Manage independent documents.
 - Manage independent embeddings of a single document.
-- Cache duplicated embeddings savings you a ton on embedding costs at scale.
-- Duplicate documents across multiple Pinecone namespaces without paying to re-embed.
+- Duplicate multiple massive documents across multiple Pinecone namespaces without paying to re-embed.
 
 _future developments_
-- See how often a document is referenced in chat.
+- See how often a document is referenced in chat applications.
 - Permission documents to be used in chat applications.
 
 ... and do all of this without rewriting your entire codebase or rolling your own implementation of trying to keep track of embeddings and vector ids? Now do that again with a simple UI for the non-technical people in your team.
