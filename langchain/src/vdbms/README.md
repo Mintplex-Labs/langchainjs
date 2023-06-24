@@ -91,7 +91,7 @@ await PineconeStore.fromDocumentsVerbose(
 ![Conifer2](../../../docs/static/img/conifer2.png)
 
 
-### Other Methods Available (in development)
+### Other Methods Available
 
 `coniferInstance.getDocuments(workspaceId?: string)`: Get all documents currently embedded in pinecone and synced with Conifer.
 
